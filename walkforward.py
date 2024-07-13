@@ -5,6 +5,8 @@ from typing import List
 import seaborn as sns
 from scipy import linalg as la
 import matplotlib.pyplot as plt
+from Backtest import run_backtest
+from Utils import *
 
 
 def pca_linear_model(
@@ -107,16 +109,16 @@ def pca_rsi_model(
 
 
 if __name__ == "__main__":
-    data = pd.read_csv("BTCUSDT3600.csv")
+    data = pd.read_csv("data/BTCUSDT3600.csv")
     data["date"] = data["date"].astype("datetime64[s]")
     data = data.set_index("date")
-
+    # data = readCsv("data/SP500_H1.csv")
     lookahead = 6
     output = pca_rsi_model(
         data,
         list(range(2, 25)),
-        24 * 365 * 2,
         24 * 365,
+        24 * 365 * 0.5,
         n_components=3,
         lookahead=lookahead,
     )
@@ -154,7 +156,6 @@ if __name__ == "__main__":
     output["pred"].plot(ax=axs[1])
     output["long_thresh"].plot(ax=axs[1], color="green")
     output["short_thresh"].plot(ax=axs[1], color="red")
-
     """
     # Heatmap code
     next_r = np.log(data['close']).diff().shift(-1)
@@ -176,3 +177,6 @@ if __name__ == "__main__":
     plt.xlabel("N Components")
     plt.ylabel("Look Ahead")
     """
+    data["signal"] = output["signal"]
+    output = run_backtest(data)
+    print(output)
